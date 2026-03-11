@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FINANCE ARCADE</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #ff2d9b;
+    --blue: #00d4ff;
+    --purple: #7b2fff;
+    --dark: #05030f;
+    --darker: #020108;
+    --grid-pink: rgba(255, 45, 155, 0.6);
+    --grid-blue: rgba(0, 212, 255, 0.8);
+    --glow-pink: 0 0 10px #ff2d9b, 0 0 30px #ff2d9b, 0 0 60px #ff2d9b;
+    --glow-blue: 0 0 10px #00d4ff, 0 0 30px #00d4ff, 0 0 60px #00d4ff;
+    --glow-purple: 0 0 10px #7b2fff, 0 0 30px #7b2fff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--darker);
+    font-family: 'Press Start 2P', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: white;
+  }
+
+  .scene { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+
+  .stars {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.9) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 8%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 40% 20%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 5%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 12%, rgba(255,255,255,0.9) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 85% 18%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 30%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 32% 35%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 28%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 78% 32%, rgba(255,255,255,0.9) 0%, transparent 100%),
+      radial-gradient(1px 1px at 92% 25%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 42%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 48% 38%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 67% 44%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 88% 40%, rgba(255,255,255,0.9) 0%, transparent 100%);
+  }
+
+  .horizon {
+    position: absolute; top: 50%; left: 0; right: 0;
+    height: 3px; transform: translateY(-50%);
+    background: var(--blue); box-shadow: var(--glow-blue); z-index: 2;
+  }
+  .horizon::before, .horizon::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 1px;
+    background: rgba(0,212,255,0.3);
+  }
+  .horizon::before { top: -8px; }
+  .horizon::after { bottom: -8px; }
+
+  .grid-top {
+    position: absolute; top: 0; left: -20%; right: -20%; height: 50%;
+    transform-origin: center bottom;
+    transform: perspective(400px) rotateX(-35deg);
+    background-image:
+      linear-gradient(to right, var(--grid-pink) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-pink) 1px, transparent 1px);
+    background-size: 60px 40px; opacity: 0.85;
+    filter: drop-shadow(0 0 6px var(--pink));
+  }
+
+  .grid-bottom {
+    position: absolute; bottom: 0; left: -20%; right: -20%; height: 50%;
+    transform-origin: center top;
+    transform: perspective(400px) rotateX(35deg);
+    background-image:
+      linear-gradient(to right, var(--grid-pink) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-pink) 1px, transparent 1px);
+    background-size: 60px 40px; opacity: 0.85;
+    filter: drop-shadow(0 0 6px var(--pink));
+  }
+
+  .ground { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: #08001a; }
+  .sky-fill { position: absolute; top: 0; left: 0; right: 0; height: 50%; background: #0a0020; }
+
+  .app {
+    position: relative; z-index: 10; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 30px 20px 60px;
+  }
+
+  .header { text-align: center; margin-bottom: 32px; margin-top: 10px; }
+
+  .title-main {
+    font-size: clamp(18px, 4vw, 32px); letter-spacing: 6px;
+    color: var(--blue); text-shadow: var(--glow-blue); line-height: 1.4;
+  }
+
+  .title-sub {
+    font-size: clamp(8px, 1.5vw, 11px); color: var(--pink);
+    text-shadow: var(--glow-pink); letter-spacing: 3px; margin-top: 10px;
+  }
+
+  .coin-display {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 14px;
+    background: rgba(0,0,0,0.6); border: 1px solid var(--pink);
+    box-shadow: 0 0 10px rgba(255,45,155,0.3); padding: 6px 16px;
+    font-size: 8px; color: #ffd700; text-shadow: 0 0 8px #ffd700; letter-spacing: 2px;
+  }
+
+  .cabinet {
+    width: 100%; max-width: 780px;
+    background: rgba(5, 3, 20, 0.92); border: 2px solid var(--purple);
+    box-shadow:
+      0 0 0 1px rgba(123,47,255,0.3), 0 0 30px rgba(123,47,255,0.4),
+      0 0 80px rgba(123,47,255,0.15), inset 0 0 40px rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+  }
+
+  .cabinet-top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; border-bottom: 1px solid rgba(123,47,255,0.4);
+    background: rgba(123,47,255,0.08);
+  }
+
+  .cab-lights { display: flex; gap: 8px; }
+  .cab-light { width: 10px; height: 10px; border-radius: 50%; }
+  .cab-light.r { background: var(--pink); box-shadow: 0 0 8px var(--pink); }
+  .cab-light.g { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+  .cab-light.b { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+  .cab-title { font-size: 7px; color: rgba(255,255,255,0.5); letter-spacing: 3px; }
+
+  .screen { padding: 28px 28px 20px; position: relative; }
+  .screen::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none; z-index: 100;
+  }
+
+  .mode-selector {
+    display: flex; gap: 0; margin-bottom: 24px; border: 1px solid var(--purple);
+  }
+
+  .mode-btn {
+    flex: 1; padding: 10px 4px; background: transparent; border: none; cursor: pointer;
+    font-family: 'Press Start 2P', monospace; font-size: clamp(4px, 0.8vw, 6px);
+    color: rgba(255,255,255,0.4); letter-spacing: 0.5px; transition: all 0.15s;
+    border-right: 1px solid var(--purple); text-align: center; line-height: 1.9;
+  }
+  .mode-btn:last-child { border-right: none; }
+  .mode-btn:hover { background: rgba(123,47,255,0.2); color: white; }
+  .mode-btn.active {
+    background: rgba(0,212,255,0.12); color: var(--blue);
+    text-shadow: 0 0 8px var(--blue); box-shadow: inset 0 0 15px rgba(0,212,255,0.1);
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .calc-form { display: flex; flex-direction: column; gap: 16px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 540px) { .form-row { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 8px; }
+
+  .field label {
+    font-size: 6px; color: var(--blue);
+    text-shadow: 0 0 6px rgba(0,212,255,0.6); letter-spacing: 2px;
+  }
+
+  .field-wrap { position: relative; }
+
+  .field-prefix {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    font-family: 'Share Tech Mono', monospace; font-size: 14px;
+    color: var(--pink); pointer-events: none;
+  }
+
+  .field input, .field select {
+    width: 100%; background: rgba(0,0,0,0.6); border: 1px solid rgba(123,47,255,0.5);
+    color: #fff; font-family: 'Share Tech Mono', monospace; font-size: 16px;
+    padding: 10px 12px 10px 28px; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none;
+  }
+  .field input.no-prefix, .field select { padding-left: 12px; }
+  .field input:focus, .field select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 1px var(--blue), 0 0 12px rgba(0,212,255,0.3);
+  }
+  .field select option { background: #0a0020; }
+
+  .calc-btn {
+    width: 100%; padding: 16px; background: transparent; border: 2px solid var(--blue);
+    color: var(--blue); font-family: 'Press Start 2P', monospace;
+    font-size: clamp(9px, 1.8vw, 13px); letter-spacing: 4px; cursor: pointer;
+    transition: all 0.2s; text-shadow: var(--glow-blue);
+    box-shadow: 0 0 15px rgba(0,212,255,0.3), inset 0 0 15px rgba(0,212,255,0.05);
+    margin-top: 8px; position: relative; overflow: hidden;
+  }
+  .calc-btn::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.15), transparent);
+    transform: translateX(-100%); transition: transform 0.5s;
+  }
+  .calc-btn:hover {
+    background: rgba(0,212,255,0.12);
+    box-shadow: 0 0 25px rgba(0,212,255,0.6), inset 0 0 25px rgba(0,212,255,0.1);
+    transform: translateY(-1px);
+  }
+  .calc-btn:hover::before { transform: translateX(100%); }
+  .calc-btn:active { transform: translateY(1px); }
+
+  .results-panel {
+    margin-top: 24px; border: 1px solid rgba(255,45,155,0.3);
+    background: rgba(0,0,0,0.5); padding: 20px; display: none;
+  }
+  .results-panel.show { display: block; }
+
+  .results-header {
+    font-size: 8px; color: var(--pink); text-shadow: var(--glow-pink);
+    letter-spacing: 3px; margin-bottom: 18px;
+    border-bottom: 1px solid rgba(255,45,155,0.2); padding-bottom: 10px;
+  }
+
+  .result-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px;
+  }
+
+  .result-card {
+    background: rgba(123,47,255,0.08); border: 1px solid rgba(123,47,255,0.3);
+    padding: 14px; transition: box-shadow 0.2s;
+  }
+  .result-card:hover { box-shadow: 0 0 15px rgba(123,47,255,0.3); }
+
+  .result-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    color: rgba(255,255,255,0.55); letter-spacing: 1px; margin-bottom: 6px; text-transform: uppercase;
+  }
+
+  .result-value {
+    font-family: 'Share Tech Mono', monospace; font-size: clamp(15px, 2.8vw, 20px);
+    color: #fff; font-weight: bold; line-height: 1.3;
+  }
+  .result-value.highlight { color: var(--blue); text-shadow: 0 0 8px rgba(0,212,255,0.6); }
+  .result-value.positive { color: #00ff88; text-shadow: 0 0 8px rgba(0,255,136,0.5); }
+  .result-value.negative { color: var(--pink); text-shadow: 0 0 8px rgba(255,45,155,0.5); }
+  .result-value.warning { color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.6); }
+
+  .result-sub {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px;
+    color: rgba(255,255,255,0.35); margin-top: 4px; line-height: 1.5;
+  }
+
+  .section-label {
+    font-size: 7px; color: var(--pink); text-shadow: var(--glow-pink);
+    letter-spacing: 2px; margin: 20px 0 10px;
+    border-bottom: 1px solid rgba(255,45,155,0.2); padding-bottom: 8px;
+  }
+
+  .explain-box {
+    background: rgba(0,0,0,0.4); border-left: 3px solid var(--pink);
+    padding: 12px 16px; margin-bottom: 14px;
+  }
+  .explain-box p {
+    font-family: 'Share Tech Mono', monospace; font-size: 12px;
+    color: rgba(255,255,255,0.8); line-height: 1.8;
+  }
+  .explain-box p strong { color: var(--pink); }
+
+  .cta-box {
+    margin-top: 18px; padding: 16px 18px;
+    border: 2px solid #ffd700; background: rgba(255,215,0,0.07);
+    box-shadow: 0 0 20px rgba(255,215,0,0.25), inset 0 0 20px rgba(255,215,0,0.04);
+  }
+  .cta-box p {
+    font-family: 'Share Tech Mono', monospace; font-size: 12px;
+    color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.6);
+    line-height: 1.8; text-align: center;
+  }
+
+  .encourage-box {
+    margin-top: 18px; padding: 14px 16px;
+    border: 1px solid var(--blue); background: rgba(0,212,255,0.06);
+    box-shadow: 0 0 14px rgba(0,212,255,0.15);
+  }
+  .encourage-box p {
+    font-family: 'Share Tech Mono', monospace; font-size: 12px;
+    color: var(--blue); text-shadow: 0 0 5px rgba(0,212,255,0.4);
+    line-height: 1.8; text-align: center;
+  }
+
+  .table-wrap { margin-top: 14px; overflow-x: auto; max-height: 280px; overflow-y: auto; }
+
+  .amort-table { width: 100%; border-collapse: collapse; font-family: 'Share Tech Mono', monospace; font-size: 11px; }
+  .amort-table th {
+    background: rgba(0,212,255,0.1); color: var(--blue); padding: 8px 10px;
+    text-align: right; font-weight: normal; letter-spacing: 1px;
+    position: sticky; top: 0; font-size: 10px; z-index: 2;
+  }
+  .amort-table th:first-child { text-align: center; }
+  .amort-table td {
+    padding: 7px 10px; text-align: right;
+    border-bottom: 1px solid rgba(123,47,255,0.1); color: rgba(255,255,255,0.8);
+  }
+  .amort-table td:first-child { text-align: center; color: rgba(255,255,255,0.4); }
+  .amort-table tr:hover td { background: rgba(123,47,255,0.1); }
+
+  /* Compound interest chart */
+  .ci-chart {
+    position: relative; height: 200px;
+    border-left: 1px solid rgba(255,255,255,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+  }
+  .ci-chart-inner { display: flex; align-items: flex-end; height: 100%; gap: 2px; padding: 0 4px; }
+  .ci-bar-group { flex: 1; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-end; height: 100%; }
+  .ci-bar-contrib { background: linear-gradient(to top, var(--purple), rgba(123,47,255,0.55)); min-height: 1px; }
+  .ci-bar-gains  { background: linear-gradient(to top, var(--blue),   rgba(0,212,255,0.45)); min-height: 1px; }
+
+  .ci-x-labels {
+    display: flex; justify-content: space-between;
+    font-family: 'Share Tech Mono', monospace; font-size: 9px;
+    color: rgba(255,255,255,0.35); margin-top: 6px; padding: 0 4px;
+  }
+
+  .chart-legend {
+    display: flex; gap: 20px; margin-top: 10px;
+    font-family: 'Share Tech Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.6);
+  }
+  .legend-dot { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: middle; }
+
+  .press-start { text-align: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(123,47,255,0.2); }
+  .press-start-text {
+    font-size: clamp(8px, 1.5vw, 11px); color: #fff;
+    text-shadow: 0 0 10px #fff, 0 0 20px var(--blue), 0 0 40px var(--blue), 0 0 70px var(--blue);
+    letter-spacing: 5px; cursor: pointer; transition: text-shadow 0.3s;
+  }
+  .press-start-text:hover {
+    text-shadow: 0 0 15px #fff, 0 0 30px var(--blue), 0 0 60px var(--blue), 0 0 100px var(--blue), 0 0 140px rgba(0,212,255,0.5);
+  }
+
+  .cabinet-footer {
+    display: flex; align-items: center; justify-content: center; gap: 20px;
+    padding: 14px 20px; border-top: 1px solid rgba(123,47,255,0.3);
+    background: rgba(0,0,0,0.4);
+  }
+
+  .joystick {
+    width: 36px; height: 36px; background: radial-gradient(circle at 40% 35%, #555, #111);
+    border-radius: 50%; border: 2px solid #333; box-shadow: 0 3px 8px rgba(0,0,0,0.8);
+    cursor: pointer; transition: transform 0.1s;
+  }
+  .joystick:active { transform: scale(0.92); }
+
+  .action-btns { display: flex; gap: 10px; }
+
+  .action-btn {
+    width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;
+    font-family: 'Press Start 2P', monospace; font-size: 7px; font-weight: bold;
+    transition: all 0.15s; position: relative; top: 0;
+  }
+  .action-btn:active { top: 3px; }
+  .btn-a { background: var(--pink); color: white; box-shadow: 0 4px 0 #8a0050, 0 0 12px rgba(255,45,155,0.5); }
+  .btn-b { background: var(--blue); color: #002a33; box-shadow: 0 4px 0 #007a99, 0 0 12px rgba(0,212,255,0.5); }
+
+  .score-display { font-size: 7px; color: rgba(255,255,255,0.4); letter-spacing: 2px; text-align: center; }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+  ::-webkit-scrollbar-thumb { background: var(--purple); }
+
+  /* ── COSMIC BULLET POINTS SUMMARY ── */
+  .bullet-summary {
+    display: none;
+    margin-top: 18px;
+    padding: 20px 22px 18px;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(123,47,255,0.5);
+    box-shadow: 0 0 30px rgba(123,47,255,0.2), inset 0 0 30px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  .bullet-summary::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    pointer-events: none;
+  }
+  .bullet-summary.show { display: block; }
+
+  .bullet-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(13px, 2.5vw, 20px);
+    letter-spacing: 4px;
+    text-align: center;
+    margin-bottom: 18px;
+    line-height: 1.3;
+    /* Cosmic Light gradient: warm orange-yellow-pink-purple */
+    background: linear-gradient(
+      180deg,
+      #ffe066 0%,
+      #ffaa00 20%,
+      #ff6622 40%,
+      #ff2d9b 65%,
+      #c044ff 85%,
+      #7b2fff 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    /* 3D shadow stack like the logo */
+    filter: drop-shadow(2px 2px 0px rgba(80,0,120,0.9))
+            drop-shadow(4px 4px 0px rgba(40,0,80,0.7))
+            drop-shadow(0px 0px 18px rgba(255,100,30,0.5))
+            drop-shadow(0px 0px 35px rgba(200,50,255,0.3));
+  }
+
+  .bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .bullet-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .bullet-list li::before {
+    content: '▸';
+    color: var(--pink);
+    text-shadow: 0 0 8px var(--pink);
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+
+  .bullet-list .b-label {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  .bullet-list .b-value {
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--blue);
+    text-shadow: 0 0 10px rgba(0,212,255,0.6);
+    margin-left: 4px;
+  }
+
+  .bullet-list .b-value.val-pink {
+    color: var(--pink);
+    text-shadow: 0 0 10px rgba(255,45,155,0.6);
+  }
+  .bullet-list .b-value.val-green {
+    color: #00ff88;
+    text-shadow: 0 0 10px rgba(0,255,136,0.5);
+  }
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="sky-fill"></div>
+  <div class="ground"></div>
+  <div class="stars"></div>
+  <div class="grid-top"></div>
+  <div class="grid-bottom"></div>
+  <div class="horizon"></div>
+</div>
+
+<div class="app">
+
+  <header class="header">
+    <div class="title-main">FINANCE ARCADE</div>
+    <div class="title-sub">▸ INSERT NUMBERS TO PLAY ◂</div>
+    <div class="coin-display">★ CREDITS: ∞ &nbsp;|&nbsp; HIGH SCORE: TBD</div>
+  </header>
+
+  <div class="cabinet">
+    <div class="cabinet-top">
+      <div class="cab-lights">
+        <div class="cab-light r"></div>
+        <div class="cab-light g"></div>
+        <div class="cab-light b"></div>
+      </div>
+      <div class="cab-title">SYS v2.6 // READY</div>
+      <div class="cab-lights">
+        <div class="cab-light b"></div>
+        <div class="cab-light g"></div>
+        <div class="cab-light r"></div>
+      </div>
+    </div>
+
+    <div class="screen">
+
+      <div class="mode-selector">
+        <button class="mode-btn active" onclick="switchMode('interest', this)">💸<br>HOW<br>INTEREST<br>WORKS</button>
+        <button class="mode-btn" onclick="switchMode('investment', this)">📈<br>COMPOUND<br>INTEREST:<br>THE WEALTH BUILDER</button>
+        <button class="mode-btn" onclick="switchMode('debt', this)">🔥<br>HOW<br>AMORTIZATION<br>WORKS</button>
+      </div>
+
+      <!-- ══════════════════════════════
+           PANEL 1 — HOW INTEREST WORKS
+      ══════════════════════════════ -->
+      <div id="panel-interest" class="panel active">
+        <div class="calc-form">
+          <div class="form-row">
+            <div class="field">
+              <label>LOAN AMOUNT</label>
+              <div class="field-wrap">
+                <span class="field-prefix">$</span>
+                <input type="text" id="hi-principal" placeholder="20,000" value="20,000" inputmode="numeric" class="comma-input">
+              </div>
+            </div>
+            <div class="field">
+              <label>ANNUAL INTEREST RATE (%)</label>
+              <div class="field-wrap">
+                <span class="field-prefix">%</span>
+                <input type="number" id="hi-rate" placeholder="7" value="7" step="0.1">
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field" style="grid-column: 1 / -1">
+              <label>DESIRED MONTHLY PAYMENT</label>
+              <div class="field-wrap">
+                <span class="field-prefix">$</span>
+                <input type="number" id="hi-payment" placeholder="400" value="400">
+              </div>
+            </div>
+          </div>
+          <button class="calc-btn" onclick="calcInterest()">▶ CALCULATE ◀</button>
+        </div>
+
+        <!-- COSMIC BULLET SUMMARY -->
+        <div id="hi-bullets" class="bullet-summary">
+          <div class="bullet-title">BULLET POINTS</div>
+          <ul class="bullet-list">
+            <li>
+              <span class="b-label">INTEREST ONLY PAYMENT</span>
+              <span class="b-value val-pink" id="hi-b-intonly">—</span>
+            </li>
+            <li>
+              <span class="b-label">WHEN LOAN WILL BE PAID OFF</span>
+              <span class="b-value" id="hi-b-payoff">—</span>
+            </li>
+          </ul>
+        </div>
+
+        <div id="hi-results" class="results-panel">
+          <div class="results-header">// INTEREST BREAKDOWN //</div>
+
+          <div class="section-label">⚠ SCENARIO A — INTEREST-ONLY PAYMENT</div>
+          <div class="explain-box">
+            <p>This payment covers <strong>interest only</strong>. The loan balance <strong>never decreases</strong> — you are essentially renting the money forever. Every single dollar goes straight to the lender, not toward owning anything.</p>
+          </div>
+          <div class="result-grid">
+            <div class="result-card">
+              <div class="result-label">INTEREST-ONLY PAYMENT / MO</div>
+              <div class="result-value negative" id="hi-int-only"></div>
+              <div class="result-sub">loan balance permanently stays at <span id="hi-int-balance"></span></div>
+            </div>
+            <div class="result-card">
+              <div class="result-label">TOTAL PAID OVER <span id="hi-int-years-label"></span> YRS</div>
+              <div class="result-value negative" id="hi-int-total"></div>
+              <div class="result-sub">$0.00 of principal ever repaid</div>
+            </div>
+          </div>
+
+          <div class="section-label" style="margin-top:28px">✓ SCENARIO B — YOUR PAYMENT OF <span id="hi-payoff-pmt-label"></span> / MO</div>
+          <div class="explain-box" style="border-left-color: var(--blue)">
+            <p>This payment covers interest <strong>and</strong> reduces principal each month. As your balance drops, so does your interest charge — meaning more of each payment attacks the debt. The amortization schedule below shows this in real time.</p>
+          </div>
+          <div class="result-grid">
+            <div class="result-card">
+              <div class="result-label">PAID OFF IN</div>
+              <div class="result-value highlight" id="hi-payoff-time"></div>
+            </div>
+            <div class="result-card">
+              <div class="result-label">TOTAL PAID</div>
+              <div class="result-value" id="hi-payoff-total"></div>
+            </div>
+            <div class="result-card">
+              <div class="result-label">TOTAL INTEREST PAID</div>
+              <div class="result-value negative" id="hi-payoff-interest"></div>
+              <div class="result-sub" id="hi-payoff-interest-pct"></div>
+            </div>
+          </div>
+
+          <div class="section-label">// AMORTIZATION — WATCH INTEREST SHRINK AS BALANCE FALLS //</div>
+          <div class="table-wrap">
+            <table class="amort-table">
+              <thead>
+                <tr>
+                  <th>MO</th>
+                  <th>PAYMENT</th>
+                  <th>PRINCIPAL</th>
+                  <th>INTEREST</th>
+                  <th>BALANCE</th>
+                </tr>
+              </thead>
+              <tbody id="hi-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════
+           PANEL 2 — HOW COMPOUND INTEREST WORKS: THE WEALTH MAKER
+      ══════════════════════════════════════════════════ -->
+      <div id="panel-investment" class="panel">
+        <div class="calc-form">
+          <div class="form-row">
+            <div class="field">
+              <label>INITIAL AMOUNT</label>
+              <div class="field-wrap">
+                <span class="field-prefix">$</span>
+                <input type="text" id="i-initial" placeholder="10,000" value="10,000" inputmode="numeric" class="comma-input">
+              </div>
+            </div>
+            <div class="field">
+              <label>MONTHLY DEPOSIT</label>
+              <div class="field-wrap">
+                <span class="field-prefix">$</span>
+                <input type="number" id="i-monthly" placeholder="500" value="500">
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>ANNUAL RETURN (%)</label>
+              <div class="field-wrap">
+                <span class="field-prefix">%</span>
+                <input type="number" id="i-rate" placeholder="8" value="8" step="0.1">
+              </div>
+            </div>
+            <div class="field">
+              <label>TIME HORIZON (YRS)</label>
+              <div class="field-wrap">
+                <input type="number" id="i-years" placeholder="20" value="20" class="no-prefix">
+              </div>
+            </div>
+          </div>
+          <button class="calc-btn" onclick="calcInvestment()">▶ CALCULATE ◀</button>
+        </div>
+
+        <!-- COSMIC BULLET SUMMARY -->
+        <div id="i-bullets" class="bullet-summary">
+          <div class="bullet-title">BULLET POINTS</div>
+          <ul class="bullet-list">
+            <li>
+              <span class="b-label">TOTAL CONTRIBUTIONS</span>
+              <span class="b-value" id="i-b-contrib">—</span>
+            </li>
+            <li>
+              <span class="b-label">FUTURE VALUE</span>
+              <span class="b-value val-green" id="i-b-fv">—</span>
+            </li>
+          </ul>
+        </div>
+
+        <div id="i-results" class="results-panel">
+          <div class="results-header">// COMPOUND INTEREST: THE WEALTH MAKER //</div>
+          <div class="result-grid" id="i-result-grid"></div>
+
+          <div class="section-label">// TOTAL CONTRIBUTIONS VS TOTAL VALUE OVER TIME //</div>
+          <div class="ci-chart">
+            <div class="ci-chart-inner" id="i-chart"></div>
+          </div>
+          <div class="ci-x-labels" id="i-x-labels"></div>
+          <div class="chart-legend">
+            <span><span class="legend-dot" style="background:var(--purple)"></span>TOTAL CONTRIBUTIONS</span>
+            <span><span class="legend-dot" style="background:var(--blue)"></span>TOTAL VALUE (w/ compound growth)</span>
+          </div>
+
+          <div class="cta-box">
+            <p>⚡ WANT TO SEE COMPOUNDING WEALTH IN ACTION? ⚡<br><br>Keep everything the same — and add 10 years to your time horizon. Watch how dramatically the total value accelerates.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════
+           PANEL 3 — PAY OFF DEBT FASTER
+      ══════════════════════════════════════ -->
+      <div id="panel-debt" class="panel">
+        <div class="calc-form">
+          <div class="form-row">
+            <div class="field">
+              <label>BORROWED AMOUNT</label>
+              <div class="field-wrap">
+                <span class="field-prefix">$</span>
+                <input type="text" id="d-principal" placeholder="15,000" value="15,000" inputmode="numeric" class="comma-input">
+              </div>
+            </div>
+            <div class="field">
+              <label>ANNUAL INTEREST RATE (%)</label>
+              <div class="field-wrap">
+                <span class="field-prefix">%</span>
+                <input type="number" id="d-rate" placeholder="18" value="18" step="0.1">
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field" style="grid-column: 1 / -1">
+              <label>PAYOFF TIMEFRAME (YEARS)</label>
+              <div class="field-wrap">
+                <input type="number" id="d-term" placeholder="5" value="5" class="no-prefix" min="1" max="30">
+              </div>
+            </div>
+          </div>
+          <button class="calc-btn" onclick="calcDebt()">▶ CALCULATE ◀</button>
+        </div>
+
+        <!-- COSMIC BULLET SUMMARY -->
+        <div id="d-bullets" class="bullet-summary">
+          <div class="bullet-title">BULLET POINTS</div>
+          <ul class="bullet-list">
+            <li>
+              <span class="b-label">MONTHLY PAYMENT</span>
+              <span class="b-value" id="d-b-payment">—</span>
+            </li>
+            <li>
+              <span class="b-label">PAY OFF IN</span>
+              <span class="b-value val-green" id="d-b-payoff">—</span>
+            </li>
+          </ul>
+        </div>
+
+        <div id="d-results" class="results-panel">
+          <div class="results-header">// DEBT PAYOFF ANALYSIS //</div>
+          <div id="d-scenario-output"></div>
+        </div>
+      </div>
+
+      <div class="press-start">
+        <div class="press-start-text" onclick="document.querySelector('.panel.active .calc-btn').click()">— PRESS START —</div>
+      </div>
+
+    </div>
+
+    <div class="cabinet-footer">
+      <div class="joystick" title="MOVE"></div>
+      <div class="score-display">P1 SCORE<br>000000</div>
+      <div class="action-btns">
+        <button class="action-btn btn-a" onclick="resetAll()" title="RESET">A</button>
+        <button class="action-btn btn-b" onclick="document.querySelector('.panel.active .calc-btn').click()" title="CALC">B</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const fmt  = n => '$' + Math.round(n).toLocaleString();
+const fmt2 = n => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const pct  = n => (n * 100).toFixed(1) + '%';
+
+// Strip commas and parse — works for both plain number and comma-formatted inputs
+const parseVal = id => parseFloat(document.getElementById(id).value.replace(/,/g, '')) || 0;
+
+// Comma formatting for text inputs
+function formatCommaInput(el) {
+  const raw = el.value.replace(/,/g, '').replace(/[^0-9.]/g, '');
+  const num = parseFloat(raw);
+  if (!isNaN(num)) {
+    el.value = num.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.comma-input').forEach(el => {
+    el.addEventListener('blur', () => formatCommaInput(el));
+    el.addEventListener('focus', () => {
+      // Strip commas on focus so user can edit cleanly
+      el.value = el.value.replace(/,/g, '');
+    });
+  });
+});
+
+function switchMode(mode, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + mode).classList.add('active');
+  btn.classList.add('active');
+}
+
+function makeCard(label, value, cls = '', sub = '') {
+  return `<div class="result-card">
+    <div class="result-label">${label}</div>
+    <div class="result-value ${cls}">${value}</div>
+    ${sub ? `<div class="result-sub">${sub}</div>` : ''}
+  </div>`;
+}
+
+/* ════════════════════════════════════
+   CALC 1 — HOW INTEREST WORKS
+════════════════════════════════════ */
+function calcInterest() {
+  const P          = parseVal('hi-principal');
+  const annualRate = parseFloat(document.getElementById('hi-rate').value) / 100;
+  const payment    = parseFloat(document.getElementById('hi-payment').value);
+  if (!P || P <= 0 || !annualRate || !payment) return;
+
+  const r       = annualRate / 12;
+  const intOnly = P * r;
+
+  // ── Fill Scenario A (interest only — always the same) ──
+  document.getElementById('hi-int-only').textContent    = fmt2(intOnly) + ' / mo';
+  document.getElementById('hi-int-balance').textContent = fmt(P);
+  // For "total paid over X yrs" we'll use a representative 10-year figure
+  document.getElementById('hi-int-years-label').textContent = '10';
+  document.getElementById('hi-int-total').textContent       = fmt(intOnly * 120);
+
+  // ── Determine Scenario B based on payment vs intOnly ──
+  let payoffText, payoffClass, scenarioBLabel, tableHTML = '', totalPaid = 0;
+
+  if (payment < intOnly - 0.005) {
+    // Below interest — balance grows forever
+    payoffText   = 'NEVER — YOUR LOAN BALANCE IS INCREASING';
+    payoffClass  = 'val-pink';
+    scenarioBLabel = fmt2(payment);
+
+    document.getElementById('hi-payoff-pmt-label').textContent  = fmt2(payment);
+    document.getElementById('hi-payoff-time').textContent       = 'NEVER';
+    document.getElementById('hi-payoff-time').className         = 'result-value negative';
+    document.getElementById('hi-payoff-total').textContent      = '—';
+    document.getElementById('hi-payoff-interest').textContent   = '—';
+    document.getElementById('hi-payoff-interest-pct').textContent = 'balance grows each month';
+
+    // Show explain box messaging for below-interest scenario
+    document.querySelector('#hi-results .explain-box:last-of-type') &&
+      (document.querySelector('#hi-results .explain-box:last-of-type').querySelector('p').innerHTML =
+        'Your payment does not cover the monthly interest charge. The unpaid interest is added to your balance — meaning you owe <strong>more</strong> next month than today.');
+
+  } else if (Math.abs(payment - intOnly) < 0.50) {
+    // Exactly interest only
+    payoffText   = "NEVER — YOU'RE ONLY PAYING INTEREST";
+    payoffClass  = 'val-pink';
+
+    document.getElementById('hi-payoff-pmt-label').textContent  = fmt2(payment);
+    document.getElementById('hi-payoff-time').textContent       = 'NEVER';
+    document.getElementById('hi-payoff-time').className         = 'result-value negative';
+    document.getElementById('hi-payoff-total').textContent      = '—';
+    document.getElementById('hi-payoff-interest').textContent   = '—';
+    document.getElementById('hi-payoff-interest-pct').textContent = 'principal never decreases';
+
+  } else {
+    // Paying more than interest — calculate payoff
+    let balance = P;
+    let months  = 0;
+    const MAX   = 1200; // 100-year safety cap
+
+    while (balance > 0.005 && months < MAX) {
+      months++;
+      const intPmt  = balance * r;
+      let   prinPmt = payment - intPmt;
+      if (prinPmt > balance) prinPmt = balance;
+      balance -= prinPmt;
+      if (balance < 0.005) balance = 0;
+      totalPaid += intPmt + prinPmt;
+      tableHTML += `<tr>
+        <td>${months}</td>
+        <td>${fmt2(payment)}</td>
+        <td>${fmt2(prinPmt)}</td>
+        <td>${fmt2(intPmt)}</td>
+        <td>${fmt2(balance)}</td>
+      </tr>`;
+      if (balance === 0) break;
+    }
+
+    const totalInterest = totalPaid - P;
+    const yrs = Math.floor(months / 12);
+    const mos = months % 12;
+    const timeStr = yrs > 0 ? `${yrs}y ${mos}m` : `${mos} months`;
+
+    payoffText  = timeStr;
+    payoffClass = 'val-green';
+
+    document.getElementById('hi-payoff-pmt-label').textContent      = fmt2(payment);
+    document.getElementById('hi-payoff-time').textContent           = timeStr;
+    document.getElementById('hi-payoff-time').className             = 'result-value highlight';
+    document.getElementById('hi-payoff-total').textContent          = fmt(totalPaid);
+    document.getElementById('hi-payoff-interest').textContent       = fmt(totalInterest);
+    document.getElementById('hi-payoff-interest-pct').textContent   = pct(totalInterest / P) + ' of original loan';
+  }
+
+  document.getElementById('hi-table').innerHTML = tableHTML;
+  document.getElementById('hi-results').classList.add('show');
+
+  // Bullet summary
+  document.getElementById('hi-b-intonly').textContent  = fmt2(intOnly) + ' / mo';
+  document.getElementById('hi-b-payoff').textContent   = payoffText;
+  document.getElementById('hi-b-payoff').className     = 'b-value ' + payoffClass;
+  document.getElementById('hi-bullets').classList.add('show');
+}
+
+/* ════════════════════════════════════
+   CALC 2 — COMPOUND INTEREST
+════════════════════════════════════ */
+function calcInvestment() {
+  const PV  = parseVal('i-initial');
+  const PMT = parseFloat(document.getElementById('i-monthly').value)  || 0;
+  const r   = parseFloat(document.getElementById('i-rate').value) / 100 / 12;
+  const totalYears = parseInt(document.getElementById('i-years').value) || 1;
+  const n   = totalYears * 12;
+
+  const FV         = PV * Math.pow(1+r, n) + PMT * (Math.pow(1+r, n) - 1) / r;
+  const totalContrib = PV + PMT * n;
+  const gains      = FV - totalContrib;
+
+  document.getElementById('i-result-grid').innerHTML =
+    makeCard('TOTAL VALUE',        fmt(FV),          'highlight') +
+    makeCard('TOTAL CONTRIBUTIONS', fmt(totalContrib), '')         +
+    makeCard('COMPOUND GROWTH',    fmt(gains),        'positive', pct(gains / totalContrib) + ' total return') +
+    makeCard('AVG MONTHLY GROWTH', fmt(gains / n),    'positive');
+
+  // Build yearly chart
+  const chartEl = document.getElementById('i-chart');
+  const xEl     = document.getElementById('i-x-labels');
+  chartEl.innerHTML = '';
+  xEl.innerHTML = '';
+
+  const pts = [];
+  for (let y = 1; y <= totalYears; y++) {
+    const nm      = y * 12;
+    const fv      = PV * Math.pow(1+r, nm) + PMT * (Math.pow(1+r, nm) - 1) / r;
+    const contrib = PV + PMT * nm;
+    pts.push({ y, fv, contrib });
+  }
+
+  const maxVal = Math.max(...pts.map(d => d.fv));
+
+  pts.forEach(d => {
+    const g = document.createElement('div');
+    g.className = 'ci-bar-group';
+
+    // stacked: contributions on bottom (purple), gains on top (blue)
+    const cBar = document.createElement('div');
+    cBar.className = 'ci-bar-contrib';
+    cBar.style.height = (d.contrib / maxVal * 100) + '%';
+
+    const gBar = document.createElement('div');
+    gBar.className = 'ci-bar-gains';
+    gBar.style.height = ((d.fv - d.contrib) / maxVal * 100) + '%';
+
+    // gains goes on top visually — prepend
+    g.appendChild(gBar);
+    g.appendChild(cBar);
+    chartEl.appendChild(g);
+  });
+
+  // X-axis: show up to 6 labels
+  const labelCount = Math.min(6, totalYears);
+  const step = Math.max(1, Math.floor(totalYears / labelCount));
+  for (let i = step; i <= totalYears; i += step) {
+    const span = document.createElement('span');
+    span.textContent = 'yr ' + i;
+    xEl.appendChild(span);
+  }
+
+  document.getElementById('i-results').classList.add('show');
+
+  // Populate + show bullet summary
+  document.getElementById('i-b-contrib').textContent = fmt(totalContrib);
+  document.getElementById('i-b-fv').textContent      = fmt(FV);
+  document.getElementById('i-bullets').classList.add('show');
+}
+
+/* ════════════════════════════════════
+   CALC 3 — PAY OFF DEBT FASTER
+════════════════════════════════════ */
+function calcDebt() {
+  const P       = parseVal('d-principal');
+  const annRate = parseFloat(document.getElementById('d-rate').value) / 100;
+  const termYrs = parseInt(document.getElementById('d-term').value) || 5;
+  if (!P || P <= 0 || !annRate || !termYrs) return;
+
+  const r       = annRate / 12;
+  const n       = termYrs * 12;
+  const intOnly = P * r;
+  const out     = document.getElementById('d-scenario-output');
+
+  // Derive the required monthly payment to pay off in exactly n months
+  const payment = P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+
+  // Build full amortization
+  let balance   = P;
+  let months    = 0;
+  let totalPaid = 0;
+  let tableHTML = '';
+
+  while (balance > 0.005 && months < n) {
+    months++;
+    const intCharge = balance * r;
+    let   prinPmt   = payment - intCharge;
+    if (prinPmt > balance) prinPmt = balance;
+    const actualPmt = intCharge + prinPmt;
+    balance -= prinPmt;
+    if (balance < 0.005) balance = 0;
+    totalPaid += actualPmt;
+    tableHTML += `<tr>
+      <td>${months}</td>
+      <td>${fmt2(actualPmt)}</td>
+      <td>${fmt2(prinPmt)}</td>
+      <td>${fmt2(intCharge)}</td>
+      <td>${fmt2(balance)}</td>
+    </tr>`;
+  }
+
+  const totalInterest = totalPaid - P;
+  const yrs     = Math.floor(months / 12);
+  const mos     = months % 12;
+  const timeStr = yrs > 0 ? `${yrs}y ${mos}m` : `${mos} months`;
+
+  out.innerHTML = `
+    <div class="result-grid">
+      ${makeCard('REQUIRED PAYMENT / MO', fmt2(payment) + ' / mo', 'highlight', 'to pay off in ' + termYrs + ' years')}
+      ${makeCard('INTEREST-ONLY PAYMENT', fmt2(intOnly) + ' / mo', 'negative',  'loan balance never decreases')}
+      ${makeCard('TOTAL PAID',            fmt(totalPaid),           '')}
+      ${makeCard('TOTAL INTEREST',        fmt(totalInterest),       'negative', pct(totalInterest / P) + ' of original loan')}
+    </div>
+    <div class="explain-box" style="border-left-color:var(--blue); margin-top:18px">
+      <p>✓ At <strong>${fmt2(payment)}/mo</strong>, your loan is fully paid off in <strong>${timeStr}</strong>. As the balance falls each month, so does the interest charge — meaning more of every payment chips away at the debt. The amortization schedule below shows this in action.</p>
+    </div>
+    <div class="section-label">// AMORTIZATION — INTEREST DECREASES AS BALANCE DROPS //</div>
+    <div class="table-wrap">
+      <table class="amort-table">
+        <thead>
+          <tr><th>MO</th><th>PAYMENT</th><th>PRINCIPAL</th><th>INTEREST</th><th>BALANCE</th></tr>
+        </thead>
+        <tbody>${tableHTML}</tbody>
+      </table>
+    </div>
+    <div class="encourage-box">
+      <p>↑ Go back and adjust "Payoff Timeframe" to see how a shorter or longer timeline changes your required monthly payment and total interest paid. Every year makes a bigger difference than you might think — try it.</p>
+    </div>`;
+
+  // Bullet summary
+  document.getElementById('d-b-payment').textContent = fmt2(payment) + ' / mo';
+  document.getElementById('d-b-payoff').textContent  = timeStr;
+  document.getElementById('d-b-payoff').className    = 'b-value val-green';
+
+  document.getElementById('d-results').classList.add('show');
+  document.getElementById('d-bullets').classList.add('show');
+}
+
+function resetAll() {
+  document.querySelectorAll('.results-panel').forEach(p => p.classList.remove('show'));
+  document.querySelectorAll('.bullet-summary').forEach(p => p.classList.remove('show'));
+  document.querySelectorAll('input').forEach(i => {
+    i.value = i.placeholder;
+  });
+}
+</script>
+</body>
+</html>
