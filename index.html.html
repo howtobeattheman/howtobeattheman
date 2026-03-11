@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How To Beat The Man</title>
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #ff4db8;
+    --blue: #4db8ff;
+    --light-blue: #a8d8ff;
+    --hot-pink: #ff2d9b;
+    --soft-blue: #7ec8e3;
+    --white: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-family: 'Orbitron', sans-serif;
+    cursor: default;
+  }
+
+  /* ── BACKGROUND ── */
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-color: #0a0015;
+    background-image: url('background.png');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+
+  .bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(80, 160, 255, 0.35) 0%,
+      rgba(180, 100, 220, 0.25) 50%,
+      rgba(255, 80, 150, 0.35) 100%
+    );
+  }
+
+  .bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.06) 3px,
+      rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .page {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px 60px;
+  }
+
+  /* ── HEADER LOGO BLOCK ── */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+    animation: fadeDown 0.9s ease both;
+  }
+
+  /* Header image mode */
+  .header-img {
+    display: none;
+    max-width: min(600px, 90vw);
+    height: auto;
+    filter: drop-shadow(0 0 20px rgba(255,80,180,0.6)) drop-shadow(0 0 40px rgba(100,180,255,0.4));
+    margin-bottom: 12px;
+  }
+  .header-img.visible { display: block; margin: 0 auto 12px; }
+
+  /* Text fallback mode */
+  .header-text { display: block; }
+  .header-text.hidden { display: none; }
+
+  .title-script {
+    font-family: 'Permanent Marker', cursive;
+    font-size: clamp(36px, 7vw, 80px);
+    color: var(--hot-pink);
+    letter-spacing: 2px;
+    line-height: 1.1;
+    text-shadow:
+      -2px -2px 0 #fff,
+       2px -2px 0 #fff,
+      -2px  2px 0 #fff,
+       2px  2px 0 #fff,
+       0 0 20px rgba(255,80,180,0.9),
+       0 0 50px rgba(255,80,180,0.5);
+    transform: rotate(-2deg);
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+
+  .title-block {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(44px, 9vw, 108px);
+    font-weight: 900;
+    color: transparent;
+    letter-spacing: 6px;
+    line-height: 1;
+    display: block;
+    -webkit-text-stroke: 3px var(--light-blue);
+    text-shadow:
+       0 0 10px rgba(120,200,255,1),
+       0 0 25px rgba(120,200,255,0.9),
+       0 0 60px rgba(100,180,255,0.7),
+       0 0 4px rgba(255,255,255,0.8);
+    filter: drop-shadow(0 4px 12px rgba(0,100,200,0.5));
+    margin-top: 2px;
+  }
+
+  .title-tagline {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(9px, 1.5vw, 13px);
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 16px;
+    text-shadow: 0 0 10px rgba(255,255,255,0.4);
+  }
+
+  /* ── ARCADE BUTTONS ── */
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+    max-width: 420px;
+    animation: fadeUp 0.9s ease 0.3s both;
+  }
+
+  .arcade-btn {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 18px 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: clamp(13px, 2.5vw, 17px);
+    letter-spacing: 5px;
+    color: #fff;
+    text-align: center;
+    text-transform: uppercase;
+    transition: transform 0.15s, filter 0.15s;
+    outline: none;
+  }
+
+  .arcade-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.06);
+    transition: box-shadow 0.2s, background 0.2s;
+  }
+  .arcade-btn::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(255,255,255,0.2);
+    pointer-events: none;
+  }
+
+  .arcade-btn:hover { transform: translateY(-3px) scale(1.02); filter: brightness(1.15); }
+  .arcade-btn:hover::before { background: rgba(255,255,255,0.12); }
+  .arcade-btn:active { transform: translateY(1px) scale(0.99); filter: brightness(0.9); }
+
+  .btn-articles::before  { border: 2px solid #ff9de0; box-shadow: 0 0 12px 2px #ff4db8, 0 0 30px 4px #ff4db8, inset 0 0 14px rgba(255,77,184,0.08); }
+  .btn-arcade::before    { border: 2px solid #9eeeff; box-shadow: 0 0 12px 2px #00d4ff, 0 0 30px 4px #00d4ff, inset 0 0 14px rgba(0,212,255,0.08); }
+  .btn-about::before     { border: 2px solid #d4b0ff; box-shadow: 0 0 12px 2px #b07eff, 0 0 30px 4px #b07eff, inset 0 0 14px rgba(176,126,255,0.08); }
+
+  .btn-articles:hover::before { box-shadow: 0 0 20px 4px #ff4db8, 0 0 60px 10px #ff4db8, inset 0 0 20px rgba(255,77,184,0.12); }
+  .btn-arcade:hover::before   { box-shadow: 0 0 20px 4px #00d4ff, 0 0 60px 10px #00d4ff, inset 0 0 20px rgba(0,212,255,0.12); }
+  .btn-about:hover::before    { box-shadow: 0 0 20px 4px #b07eff, 0 0 60px 10px #b07eff, inset 0 0 20px rgba(176,126,255,0.12); }
+
+  .btn-label { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .btn-icon  { font-size: 18px; line-height: 1; }
+
+  .btn-articles .btn-label { text-shadow: 0 0 12px #ff4db8, 0 0 30px rgba(255,77,184,0.6); }
+  .btn-arcade   .btn-label { text-shadow: 0 0 12px #00d4ff, 0 0 30px rgba(0,212,255,0.6); }
+  .btn-about    .btn-label { text-shadow: 0 0 12px #b07eff, 0 0 30px rgba(176,126,255,0.6); }
+
+  /* ── FOOTER ── */
+  .footer {
+    position: fixed;
+    bottom: 20px;
+    left: 0; right: 0;
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 3px;
+    z-index: 10;
+  }
+
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-30px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(30px);  } to { opacity:1; transform:translateY(0); } }
+
+  .sparks { position:fixed; inset:0; pointer-events:none; z-index:5; overflow:hidden; }
+  .spark  { position:absolute; width:2px; height:2px; border-radius:50%; background:#fff; opacity:0; animation:sparkFloat linear infinite; }
+  @keyframes sparkFloat {
+    0%   { opacity:0; transform:translateY(100vh) scale(0); }
+    10%  { opacity:0.8; }
+    90%  { opacity:0.4; }
+    100% { opacity:0; transform:translateY(-10vh) scale(1.5); }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg" id="bg"></div>
+<div class="sparks" id="sparks"></div>
+
+<!-- Main content -->
+<div class="page">
+  <header class="header">
+    <!-- Header image -->
+    <img class="header-img visible" id="headerImg" src="header.png" alt="How To Beat The Man">
+
+    <!-- Text fallback (shown only if header.png is removed) -->
+    <div class="header-text hidden" id="headerText">
+      <div class="title-script">how to beat</div>
+      <span class="title-block">THE MAN</span>
+    </div>
+
+    <div class="title-tagline">financial education for the rest of us</div>
+  </header>
+
+  <nav class="buttons">
+    <a href="/articles" class="arcade-btn btn-articles">
+      <span class="btn-label"><span class="btn-icon">📰</span>ARTICLES</span>
+    </a>
+    <a href="/finance-arcade" class="arcade-btn btn-arcade">
+      <span class="btn-label"><span class="btn-icon">🕹️</span>FINANCE ARCADE</span>
+    </a>
+    <a href="/about" class="arcade-btn btn-about">
+      <span class="btn-label"><span class="btn-icon">👤</span>ABOUT ME</span>
+    </a>
+  </nav>
+</div>
+
+<div class="footer">© HOW TO BEAT THE MAN &nbsp;·&nbsp; INSERT COIN TO CONTINUE</div>
+
+<script>
+  const sparksEl = document.getElementById('sparks');
+  const colors = ['#ff4db8','#00d4ff','#ffffff','#b07eff','#ffaadd'];
+  for (let i = 0; i < 40; i++) {
+    const s = document.createElement('div');
+    s.className = 'spark';
+    s.style.left              = Math.random() * 100 + 'vw';
+    s.style.width             = (Math.random() * 3 + 1) + 'px';
+    s.style.height            = s.style.width;
+    s.style.background        = colors[Math.floor(Math.random() * colors.length)];
+    s.style.animationDuration = (Math.random() * 12 + 8) + 's';
+    s.style.animationDelay    = (Math.random() * 10) + 's';
+    s.style.boxShadow         = `0 0 4px 1px ${colors[Math.floor(Math.random() * colors.length)]}`;
+    sparksEl.appendChild(s);
+  }
+</script>
+</body>
+</html>
